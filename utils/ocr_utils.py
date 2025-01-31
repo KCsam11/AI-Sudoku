@@ -1,6 +1,8 @@
 #reconnaissance sudoku
 import cv2
 import numpy as np
+import operator
+
 
 def prepocessing(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -14,7 +16,24 @@ def prepocessing(img):
         "gray_image": gray,
         "binary_image": proc,
     }
+
 def get_contours(prep_img):  
+    contours, _ = cv2.findContours(prep_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+    if not contours:
+        raise ValueError("Aucun contour trouvé dans l'image.")
+    
+    contours = sorted(contours, key=cv2.contourArea, reverse=True) 
+    polygon = contours[0]
+    bottom_right, _ = max(enumerate([pt[0][0] + pt[0][1] for pt in
+                      polygon]), key=operator.itemgetter(1))
+    top_left, _ = min(enumerate([pt[0][0] + pt[0][1] for pt in
+                    polygon]), key=operator.itemgetter(1))
+    bottom_left, _ = min(enumerate([pt[0][0] - pt[0][1] for pt in
+                        polygon]), key=operator.itemgetter(1))
+    top_right, _ = max(enumerate([pt[0][0] - pt[0][1] for pt in
+                    polygon]), key=operator.itemgetter(1))
+    
+    return [polygon[top_left][0], polygon[top_right][0], polygon[bottom_right][0], polygon[bottom_left][0]]
 
 def perspective_transform(prep_img, contours):
 
