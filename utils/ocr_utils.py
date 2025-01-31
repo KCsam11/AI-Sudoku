@@ -36,6 +36,14 @@ def get_contours(prep_img):
     return [polygon[top_left][0], polygon[top_right][0], polygon[bottom_right][0], polygon[bottom_left][0]]
 
 def perspective_transform(prep_img, contours):
+    top_left, top_right, bottom_right, bottom_left = contours
+    width = max([top_right[0] - top_left[0], bottom_right[0] - bottom_left[0]])
+    height = max(bottom_left[1] - top_left[1], bottom_right[1] - top_right[1])
+    dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], np.float32)
+    M = cv2.getPerspectiveTransform(np.array(contours, np.float32), dst)
+
+    return cv2.warpPerspective(prep_img, M, (width, height))
+
 
 def get_cell(binary_img):
 
