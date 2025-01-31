@@ -46,7 +46,18 @@ def perspective_transform(prep_img, contours):
 
 
 def get_cell(binary_img):
+    cells = [] 
+    side_col = img.shape[1] 
+    side_row = img.shape[0]
+    side_row = side_row / 9
+    side_col = side_col / 9
+    for j in range(9):
+        for i in range(9):
+            p1 = (int(i * side_col), int(j * side_row))  # Coin supérieur gauche (entier)
+            p2 = (int((i+1) * side_col), int((j+1) * side_row))  # Coin inférieur droit (entier)
+            cells.append((p1, p2)) 
 
+    return cells
 def get_digit(gray_img_perspective,all_cells,size,debug=False):
 
 def extract_digit(img,cell_cord,size):
