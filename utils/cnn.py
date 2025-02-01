@@ -1,41 +1,37 @@
 # Larger CNN for the MNIST Dataset
-import numpy
+import numpy as np
 import cv2
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import Flatten
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.utils import np_utils
-from keras import backend as K
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras import backend as K
 import matplotlib.pyplot as plt
 
-K.set_image_dim_ordering('th')
-
+K.set_image_data_format('channels_last')
 # Fix random seed for reproducibility
 seed = 7
-numpy.random.seed(seed)
+np.random.seed(seed)
 
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
 # Reshape to be samples*pixels*width*height
-X_train = X_train.reshape(X_train.shape[0], 1, 28, 28).astype('float32')
-X_test = X_test.reshape(X_test.shape[0], 1, 28, 28).astype('float32')
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1).astype('float32')
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1).astype('float32')
 
 # Normalize inputs from 0-255 to 0-1
 X_train = X_train / 255
 X_test = X_test / 255
 
 # One Hot encode outputs
-y_train = np_utils.to_categorical(y_train)
-y_test = np_utils.to_categorical(y_test)
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
 num_classes = y_test.shape[1]
 
 # Create model
 model = Sequential()
-model.add(Conv2D(32, (5, 5), input_shape=(1, 28, 28), activation='relu'))
+model.add(Conv2D(32, (5, 5), input_shape=(28, 28, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(16, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -54,21 +50,21 @@ print("Large CNN Error: %.2f%%" % (100-scores[1]*100))
 
 #  - - - - - - - TEST single image - - - - - - - -
 
-image = (X_test[1]).reshape(1,1,28,28) # 1->'2';    
-model_pred = model.predict_classes(image, verbose = 0)
+image = (X_test[1]).reshape(1, 28, 28, 1) 
+model_pred = np.argmax(model.predict(image), axis=-1)  
 print('Prediction of model: {}'.format(model_pred[0]))
 
 
 # - - - - - - TESTING multiple image - - - - - - - - - -
 
 test_images = X_test[1:5]
-test_images = test_images.reshape(test_images.shape[0], 28, 28)
+test_images = test_images.reshape(test_images.shape[0], 28, 28, 1)
 print ("Test images shape: {}".format(test_images.shape))
 
 for i, test_image in enumerate(test_images, start=1):
     org_image = test_image
-    test_image = test_image.reshape(1,1,28,28)
-    prediction = model.predict_classes(test_image, verbose=0)
+    test_image = test_image.reshape(1, 28, 28, 1)
+    prediction = np.argmax(model.predict(test_image), axis=-1)
 
     print ("Predicted digit: {}".format(prediction[0]))
     plt.subplot(220+i)
