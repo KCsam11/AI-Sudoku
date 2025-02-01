@@ -1,10 +1,10 @@
-#reconnaissance sudoku
 import cv2
 import numpy as np
 import operator
+from skimage.segmentation import clear_border
+import imutils
 
-
-def prepocessing(img):
+def preprocessing(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     proc = cv2.GaussianBlur(gray.copy(), (9, 9), 0) 
     proc = cv2.adaptiveThreshold(proc, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
@@ -13,12 +13,12 @@ def prepocessing(img):
     proc = cv2.dilate(proc, noyau)
 
     return {
-        "gray_image": gray,
         "binary_image": proc,
+        "gray_image": gray
     }
 
-def get_contours(prep_img):  
-    contours, _ = cv2.findContours(prep_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+def get_contours(prep):
+    contours, h = cv2.findContours(prep, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
     if not contours:
         raise ValueError("Aucun contour trouvé dans l'image.")
     
@@ -35,36 +35,62 @@ def get_contours(prep_img):
     
     return [polygon[top_left][0], polygon[top_right][0], polygon[bottom_right][0], polygon[bottom_left][0]]
 
-def perspective_transform(prep_img, contours):
-    top_left, top_right, bottom_right, bottom_left = contours
+def perspective_transform(img, corners):
+    top_left, top_right, bottom_right, bottom_left = corners
     width = max([top_right[0] - top_left[0], bottom_right[0] - bottom_left[0]])
     height = max(bottom_left[1] - top_left[1], bottom_right[1] - top_right[1])
     dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], np.float32)
-    M = cv2.getPerspectiveTransform(np.array(contours, np.float32), dst)
+    M = cv2.getPerspectiveTransform(np.array(corners, np.float32), dst)
 
-    return cv2.warpPerspective(prep_img, M, (width, height))
+    return cv2.warpPerspective(img, M, (width, height))
 
 
-def get_cell(binary_img):
-    cells = [] 
-    side_col = binary_img.shape[1] 
-    side_row = binary_img.shape[0]
+def get_cell(img):
+    squares = [] 
+    side_col = img.shape[1] 
+    side_row = img.shape[0]
     side_row = side_row / 9
     side_col = side_col / 9
     for j in range(9):
         for i in range(9):
             p1 = (int(i * side_col), int(j * side_row)) 
             p2 = (int((i+1) * side_col), int((j+1) * side_row))
-            cells.append((p1, p2)) 
+            squares.append((p1, p2)) 
 
-    return cells
+    return squares
 
-def get_digit(gray_img_perspective,all_cells,size,debug=False):
+def get_digits(img, allCell):
     digits = []
-    for cell in all_cells:
-        digit = extract_digit(gray_img_perspective  , cell, size)
+    for cell in allCell:
+        digit = extract_digit(img,cell)
         digits.append(digit)
     return digits
 
-def extract_digit(img,cell_cord,size):
+def cut_from_rect(img, rect):
+    (x1, y1), (x2, y2) = rect
+    return img[y1:y2, x1:x2]
 
+def extract_digit(img ,cell, debug=False):
+    binary_cell = cut_from_rect(img,cell)
+    thresh = cv2.threshold(binary_cell, 0, 255,
+	    cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    thresh = clear_border(thresh)
+
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+		cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    if len(cnts) == 0:
+        return None
+	
+    c = max(cnts, key=cv2.contourArea)
+    mask = np.zeros(thresh.shape, dtype="uint8")
+    cv2.drawContours(mask, [c], -1, 255, -1)
+   
+    (h, w) = thresh.shape
+    percentFilled = cv2.countNonZero(mask) / float(w * h)
+	
+    if percentFilled < 0.03:
+        return None
+    digit = cv2.bitwise_and(thresh, thresh, mask=mask)
+
+    return digit
