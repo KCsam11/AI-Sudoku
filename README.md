@@ -36,12 +36,9 @@ jupyter notebook ai_solver_sudoku.ipynb
 
 ```
 AI-Sudoku/
-├── data/                  # Training data
-├── models/               # Trained neural networks
 ├── test/                # Test images
-├── utils/               # Utility functions
-│   ├── ocr.py          # OCR functions
-│   └── solver.py       # Sudoku solver
+│── ocr.py          # OCR functions
+│── solver.py       # Sudoku solver
 ├── ai_solver_sudoku.ipynb  # Main notebook
 └── README.md
 ```
