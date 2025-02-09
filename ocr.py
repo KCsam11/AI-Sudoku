@@ -69,11 +69,11 @@ def ocr_sudoku(model,grille):
         for y in range(9):
             ligne = ""
             for x in range(9):
-                y2min = y * cell + marge
-                y2max = (y + 1) * cell - marge
-                x2min = x * cell + marge
-                x2max = (x + 1) * cell - marge
-                img_cell = grille[y2min:y2max, x2min:x2max]
+                ymin = y * cell + marge
+                ymax = (y + 1) * cell - marge
+                xmin = x * cell + marge
+                xmax = (x + 1) * cell - marge
+                img_cell = grille[ymin:ymax, xmin:xmax]
                 x = img_cell.reshape(1, 28, 28, 1)
                 if x.sum() > 10000:
                     prediction = np.argmax(model.predict(x), axis=-1)
