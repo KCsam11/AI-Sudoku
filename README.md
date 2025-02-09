@@ -37,8 +37,9 @@ jupyter notebook ai_solver_sudoku.ipynb
 ```
 AI-Sudoku/
 ├── test/                # Test images
+│── digit_model.h5       # CNN
 │── ocr.py          # OCR functions
-│── solver.py       # Sudoku solver
+│── solver_sudoku.py       # Sudoku solver
 ├── ai_solver_sudoku.ipynb  # Main notebook
 └── README.md
 ```
