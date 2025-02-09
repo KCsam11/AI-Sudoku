@@ -1,2 +1,0 @@
-# Algorithmes de résolution
-
