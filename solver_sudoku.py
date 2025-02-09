@@ -1,7 +1,5 @@
-# Algorithmes de résolution de sudoku
 
-import numpy as np
-
+#print_sudoku function to print the sudoku board
 def print_sudoku(board):
     for i in range(9):
         if i % 3 == 0 and i != 0:
@@ -11,8 +9,9 @@ def print_sudoku(board):
                 print("|", end=" ")  
             print(board[i][j] if board[i][j] != 0 else ".", end=" ")
         print()
-        
 
+       
+# Solve the sudoku
 def solve(bo):
     find = find_empty(bo)
     if not find:
@@ -27,6 +26,7 @@ def solve(bo):
             bo[row][col] = 0
     return False
 
+# Check if the number is valid
 def valid(bo, num, pos):
     # Check row
     for i in range(len(bo[0])):
@@ -46,6 +46,7 @@ def valid(bo, num, pos):
     return True
 
 
+# Find the empty cell
 def find_empty(bo):
     for i in range(len(bo)):
         for j in range(len(bo[0])):

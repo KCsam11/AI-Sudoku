@@ -7,6 +7,7 @@ cell = 28 + 2 * marge
 taille_grille = cell * 9
 flag = 0
 
+# Preprocess the image
 def preprocess(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (7, 7), 0)
@@ -14,6 +15,7 @@ def preprocess(img):
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 9, 2)
     return thresh
 
+# Get the grid contour
 def get_contours(thresh):
     contour_grille = None
     area_max = 0
@@ -32,9 +34,9 @@ def get_contours(thresh):
     return contour_grille
 
 
+# Get corners of the grid
 def get_corners(contour_grille):
     if contour_grille is not None:
-     #cv2.drawContours(img, [contour_grille], 0, (0, 255, 0), 2)
      points = np.vstack(contour_grille).squeeze()
      points = sorted(points, key=operator.itemgetter(1))
      if points[0][0] < points[1][0]:
@@ -52,7 +54,7 @@ def get_corners(contour_grille):
                           taille_grille, taille_grille]])
     return pts1, pts2
 
-
+# Get the perspective of the grid
 def perspective(pts1, pts2, img):
     M = cv2.getPerspectiveTransform(pts1, pts2)
     grille = cv2.warpPerspective(img, M, (taille_grille, taille_grille))
@@ -60,6 +62,7 @@ def perspective(pts1, pts2, img):
     grille = cv2.adaptiveThreshold(grille, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 7, 3) 
     return grille   
 
+# Aplly OCR to the grid
 def ocr_sudoku(model,grille):
     if flag ==0:
         grille_txt = []
